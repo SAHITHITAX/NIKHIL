@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Player Score Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      margin: 0; 
+      padding: 15px; 
+      background: #f9fbfd; 
+      color: #333; 
+    }
+
+    h2 {
+      text-align: center;
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+
+    label, select, input, button { 
+      font-size: 1rem; 
+    }
+
+    select, input {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover { background: #0056b3; }
+
+    .table-container {
+      margin-top: 20px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      min-width: 750px; 
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    th, td { 
+      padding: 10px; 
+      text-align: center; 
+      border-bottom: 1px solid #eee; 
+    }
+
+    th { 
+      background: #f1f6ff; 
+      color: #333; 
+      font-weight: 600; 
+    }
+
+    tr:nth-child(even) { background: #fafafa; }
+
+    input.score-input { 
+      width: 65px; 
+      padding: 6px; 
+      text-align: center; 
+      font-size: 1rem; 
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .drop25 { background: #007bff; }
+    .drop25:hover { background: #0056b3; }
+
+    .drop40 { background: #28a745; }
+    .drop40:hover { background: #1c7430; }
+
+    .rummy { background: #ff9800; }
+    .rummy:hover { background: #e68900; }
+
+    .drop25, .drop40, .rummy {
+      display: inline-block;
+      padding: 4px 8px;
+      margin: 2px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border: none;
+      color: white;
+      transition: 0.3s;
+    }
+
+    .out { 
+      background-color: #ffebee !important; 
+      color: #d32f2f; 
+      font-weight: bold; 
+      border-radius: 4px;
+      padding: 4px;
+    }
+
+    .info { 
+      font-size: 0.8rem; 
+      color: #555; 
+      display: block;
+      margin-top: 4px;
+    }
+
+    .add-btn {
+      margin-top: 12px;
+      display: block;
+      background: #673ab7;
+    }
+    .add-btn:hover { background: #4a148c; }
+
+    /* Highlight colors */
+    .high-score-col { background-color: #ffebee !important; }
+    .low-score-col { background-color: #e8f5e9 !important; }
+
+    @media(max-width: 768px) {
+      h2 { font-size: 1.3rem; }
+      table { font-size: 0.85rem; min-width: 600px; }
+      input.score-input { width: 55px; }
+      .drop25, .drop40, .rummy { font-size: 0.7rem; padding: 3px 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<h2>🎮 Player Score Tracker</h2>
+
+<label>Number of players: </label>
+<select id="playerCount">
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3" selected>3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10">10</option>
+</select>
+<br><br>
+<button onclick="askNames()">Enter Player Names</button>
+
+<div id="nameInputs"></div>
+<div id="tableContainer" class="table-container"></div>
+
+<script>
+let gameCount = 0;
+let players = [];
+
+function askNames() {
+  const container = document.getElementById("nameInputs");
+  container.innerHTML = "";
+  const playerCount = parseInt(document.getElementById("playerCount").value);
+
+  let html = "<h3>Enter Player Names</h3>";
+  for (let i = 1; i <= playerCount; i++) {
+    html += `Player ${i}: <input type="text" id="playerName-${i}" required><br><br>`;
+  }
+  html += `<button onclick="createTable(${playerCount})">Create Table</button>`;
+  container.innerHTML = html;
+}
+
+function createTable(playerCount) {
+  players = [];
+  for (let i = 1; i <= playerCount; i++) {
+    let name = document.getElementById(`playerName-${i}`).value.trim();
+    if (!name) name = `Player ${i}`;
+    players.push(name);
+  }
+
+  gameCount = 0; // reset
+  const container = document.getElementById("tableContainer");
+  container.innerHTML = "";
+
+  let tableHTML = `<table id="scoreTable"><thead><tr><th>Game</th>`;
+
+  // Player headers with buttons
+  players.forEach((name, idx) => {
+    let p = idx + 1;
+    tableHTML += `<th>
+      ${name}<br>
+      <button class="drop25" onclick="useDrop(${p},25)">Drop +25</button>
+      <button class="drop40" onclick="useDrop(${p},40)">Drop +40</button>
+      <button class="rummy" onclick="useDrop(${p},0)">Rummy</button>
+      <span class="info" id="dropsLeft-${p}">0</span>
+    </th>`;
+  });
+  tableHTML += `</tr>`;
+
+  // Totals row
+  tableHTML += `<tr><td><b>Total</b></td>`;
+  players.forEach((_, idx) => {
+    let p = idx + 1;
+    tableHTML += `<td class="total" data-player="${p}">0</td>`;
+  });
+  tableHTML += `</tr></thead><tbody id="gameBody"></tbody></table>`;
+
+  container.innerHTML = tableHTML + `<button class="add-btn" onclick="addGame()">➕ Add Game</button>`;
+  addGame(); // first row
+}
+
+function addGame() {
+  if (gameCount > 0) {
+    const lastRowInputs = document.querySelectorAll(`input[data-game="${gameCount}"]`);
+    for (let input of lastRowInputs) {
+      if (!input.value) {
+        alert(`Please fill all scores for Game ${gameCount} before adding a new game.`);
+        return;
+      }
+    }
+  }
+
+  gameCount++;
+  const body = document.getElementById("gameBody");
+  let row = `<tr><td><b>${gameCount}</b></td>`;
+  players.forEach((_, idx) => {
+    let p = idx + 1;
+    row += `<td><input type="tel" pattern="[0-9]*" class="score-input" 
+             data-player="${p}" data-game="${gameCount}" 
+             oninput="calculateTotals()"></td>`;
+  });
+  row += `</tr>`;
+  body.insertAdjacentHTML("beforeend", row);
+}
+
+function calculateTotals() {
+  const playerCells = document.querySelectorAll(".total");
+  let totals = [];
+
+  playerCells.forEach(cell => {
+    const player = cell.dataset.player;
+    const inputs = document.querySelectorAll(`input[data-player="${player}"]`);
+    let total = 0;
+    inputs.forEach(input => {
+      total += parseInt(input.value) || 0;
+    });
+
+    if (total > 200) {
+      cell.textContent = "OUT";
+      cell.classList.add("out");
+      document.getElementById(`dropsLeft-${player}`).textContent = "-";
+    } else {
+      cell.textContent = total;
+      cell.classList.remove("out");
+      const gap = 200 - total;
+      const drops = Math.floor(gap / 25);
+      document.getElementById(`dropsLeft-${player}`).textContent = drops + " drops left";
+    }
+
+    totals.push({ player, total: total > 200 ? 201 : total });
+  });
+
+  // Remove previous highlights
+  playerCells.forEach(c => c.classList.remove("high-score-col", "low-score-col"));
+
+  if (totals.length > 1) {
+    const max = Math.max(...totals.map(t => t.total));
+    const min = Math.min(...totals.map(t => t.total));
+
+    totals.forEach(t => {
+      const cell = document.querySelector(`.total[data-player="${t.player}"]`);
+      if (t.total === max && t.total <= 200) {
+        cell.classList.add("high-score-col");
+      }
+      if (t.total === min) {
+        cell.classList.add("low-score-col");
+      }
+    });
+  }
+}
+
+function useDrop(player, value) {
+  const totalCell = document.querySelector(`.total[data-player="${player}"]`);
+  if (totalCell.classList.contains("out")) return;
+
+  const inputs = document.querySelectorAll(`input[data-player="${player}"]`);
+  let placed = false;
+
+  for (let input of inputs) {
+    if (!input.value) {
+      input.value = value;
+      placed = true;
+      break;
+    }
+  }
+
+  if (!placed) {
+    const lastRowInputs = document.querySelectorAll(`input[data-game="${gameCount}"]`);
+    for (let input of lastRowInputs) {
+      if (!input.value) {
+        alert(`Please fill all scores for Game ${gameCount} before drop can add a new game.`);
+        return;
+      }
+    }
+    addGame();
+    const newInput = document.querySelector(`input[data-player="${player}"][data-game="${gameCount}"]`);
+    newInput.value = value;
+  }
+
+  calculateTotals();
+}
+</script>
+
+</body>
+</html>
