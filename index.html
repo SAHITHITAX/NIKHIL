@@ -141,7 +141,7 @@
 
 <label>Number of players: </label>
 <select id="playerCount">
-  <option value="1">1</option>
+
   <option value="2">2</option>
   <option value="3" selected>3</option>
   <option value="4">4</option>
@@ -195,7 +195,7 @@ function createTable(playerCount) {
     tableHTML += `<th>
       ${name}<br>
       <button class="drop25" onclick="useDrop(${p},25)">Drop +25</button>
-      <button class="drop40" onclick="useDrop(${p},40)">Drop +40</button>
+      <button class="drop40" onclick="useDrop(${p},40)">Middle Drop +40</button>
       <button class="rummy" onclick="useDrop(${p},0)">Rummy</button>
       <span class="info" id="dropsLeft-${p}">0</span>
     </th>`;
